@@ -4,6 +4,7 @@ import pool from "../postgres";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+import { AuthToken, RequireAdmin } from "../middleware";
 
 dotenv.config();
 const router = Router();
@@ -13,6 +14,41 @@ const rounds = Number(process.env.ROUNDS) || 10;
 if (!jwtSecret) {
   throw new Error("Jwt Secret não encontrado no .env");
 }
+
+router.get(
+  "/me",
+  AuthToken,
+  RequireAdmin,
+  async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Usuario nao autenticado" });
+      }
+      const result = await pool.query(`SELECT * FROM users WHERE id = $1`, [
+        userId,
+      ]);
+      if (!result.rowCount) {
+        return res.status(403).json({ message: "Usuario não existe!" });
+      }
+      const data = result.rows[0];
+
+      if (!data) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Usuário não encontrado" });
+      }
+      res.status(200).json({
+        id: data.id,
+        username: data.username,
+        role: data.role,
+        created_at: data.created_at,
+      });
+    } catch (error) {
+      return res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  },
+);
 
 // Register route
 router.post("/register", async (req: Request, res: Response) => {
@@ -69,7 +105,7 @@ router.post("/login", async (req: Request, res: Response) => {
     if (!valid) {
       return res.status(401).json({ message: "Senha invalida!" });
     }
-    const token = jwt.sign({ id: user.id }, jwtSecret, {
+    const token = jwt.sign({ id: user.id, role: user.role }, jwtSecret, {
       expiresIn: "1d",
     });
 
