@@ -1,4 +1,5 @@
 import express, { json } from "express";
+import cors from "cors";
 import dotenv from "dotenv";
 import userRouter from "./routes/user";
 import cakeRouter from "./routes/cake";
@@ -9,6 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 app.use(express.json());
+app.use(cors());
 app.use(userRouter);
 app.use(cakeRouter);
 

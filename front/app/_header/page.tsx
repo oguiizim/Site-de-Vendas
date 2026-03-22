@@ -15,12 +15,16 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Search, Menu, ShoppingCart, CakeSlice } from "lucide-react";
+import { Search, Menu, ShoppingCart, CakeSlice, LogOut } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 function Header() {
   const [open, setOpen] = useState(false);
+  const { user, loading, logout } = useAuth();
+
+  const profileLabel = !loading && user ? `Perfil: ${user.name}` : "Perfil";
 
   return (
     <div className="w-full flex items-center border-b-2">
@@ -29,7 +33,7 @@ function Header() {
           <CakeSlice />
           <h1 className="text-xl">Site de Vendas</h1>
         </div>
-        <div className="w-full flex lg:w-[25%] items-center gap-3">
+        <div className="w-full flex lg:w-[35%] items-center gap-3">
           <InputGroup className="max-w-full">
             <InputGroupInput placeholder="Pesquisar" />
             <InputGroupAddon>
@@ -42,6 +46,9 @@ function Header() {
             onClick={() => setOpen((prev) => !prev)}
           >
             <Menu size={64} />
+          </Button>
+          <Button variant="outline" className="hidden lg:flex" asChild>
+            <Link href="/profile">{profileLabel}</Link>
           </Button>
           <Sheet>
             <SheetTrigger asChild>
@@ -66,10 +73,21 @@ function Header() {
               </SheetFooter>
             </SheetContent>
           </Sheet>
+          <Button
+            variant="outline"
+            className="hidden lg:flex gap-2 items-center cursor-pointer"
+            onClick={() => {
+              logout();
+            }}
+          >
+            <LogOut />
+            Sair
+          </Button>
         </div>
+
         {open && (
           <div className="w-full lg:hidden">
-            <ul className="flex flex-col gap-3 w-full">
+            <ul className="flex flex-col justify-center gap-3 w-full">
               <li className="w-full">
                 <Sheet>
                   <SheetTrigger asChild>
@@ -97,7 +115,19 @@ function Header() {
               </li>
               <li>
                 <Button variant="outline" className="w-full" asChild>
-                  <Link href="/profile">Perfil</Link>
+                  <Link href="/profile">{profileLabel}</Link>
+                </Button>
+              </li>
+              <li className="flex w-full justify-center">
+                <Button
+                  variant="outline"
+                  className="flex gap-2 items-center cursor-pointer"
+                  onClick={() => {
+                    logout();
+                  }}
+                >
+                  <LogOut />
+                  Sair
                 </Button>
               </li>
             </ul>
