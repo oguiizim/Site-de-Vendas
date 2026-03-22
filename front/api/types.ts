@@ -45,3 +45,11 @@ export type CreateCakeData = {
   avaliable: boolean;
   image_url: string;
 };
+
+export type CartItem = {
+  id: number;
+  name: string;
+  price: number;
+  image_url: string;
+  quantity: number;
+};

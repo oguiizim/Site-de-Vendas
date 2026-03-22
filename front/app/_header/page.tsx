@@ -23,17 +23,51 @@ import {
   LogOut,
   LogIn,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  getCartItems,
+  subscribeToCartUpdates,
+  updateCartItemQuantity,
+} from "@/api/cart";
+import type { CartItem } from "@/api/types";
 
 function Header() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => getCartItems());
   const { user, loading, logout } = useAuth();
+  const query = searchParams.get("q") || "";
 
   const profileLabel = !loading && user ? `Perfil: ${user.name}` : "Perfil";
+
+  const cartTotal = useMemo(() => {
+    return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  }, [cartItems]);
+
+  useEffect(() => {
+    return subscribeToCartUpdates(() => {
+      setCartItems(getCartItems());
+    });
+  }, []);
+
+  function handleSearchSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const value = String(formData.get("search") || "");
+    router.push(`/?q=${encodeURIComponent(value)}`);
+  }
+
+  function handleIncrease(id: number, quantity: number) {
+    setCartItems(updateCartItemQuantity(id, quantity + 1));
+  }
+
+  function handleDecrease(id: number, quantity: number) {
+    setCartItems(updateCartItemQuantity(id, quantity - 1));
+  }
 
   return (
     <div className="w-full flex items-center border-b-2">
@@ -43,14 +77,14 @@ function Header() {
           <h1 className="text-xl">Site de Vendas</h1>
         </div>
         <div className="w-full flex lg:w-[35%] items-center gap-3">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              router.push("/");
-            }}
-          >
+          <form onSubmit={handleSearchSubmit}>
             <InputGroup className="max-w-full">
-              <InputGroupInput placeholder="Pesquisar" />
+              <InputGroupInput
+                key={query}
+                name="search"
+                placeholder="Pesquisar"
+                defaultValue={query}
+              />
               <InputGroupAddon>
                 <Search />
               </InputGroupAddon>
@@ -81,11 +115,58 @@ function Header() {
                 <SheetTitle>Carrinho de Compras</SheetTitle>
               </SheetHeader>
 
+              <div className="flex flex-col gap-3 px-4">
+                {cartItems.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Seu carrinho esta vazio.
+                  </p>
+                ) : (
+                  cartItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="border rounded-xl p-3 flex flex-col gap-1"
+                    >
+                      <p className="font-medium">{item.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Preco: R$ {item.price}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Quantidade: {item.quantity}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Subtotal: R$ {item.price * item.quantity}
+                      </p>
+                      <div className="flex items-center gap-2 pt-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDecrease(item.id, item.quantity)}
+                        >
+                          -
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleIncrease(item.id, item.quantity)}
+                        >
+                          +
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
               <SheetFooter>
-                <Button type="submit">Finalizar Compras</Button>
-                <SheetClose asChild>
-                  <Button variant="outline">Fechar</Button>
-                </SheetClose>
+                <div className="w-full flex flex-col gap-2">
+                  <p className="text-sm">Total: R$ {cartTotal}</p>
+                  <Button asChild>
+                    <Link href="/cart">Finalizar Compras</Link>
+                  </Button>
+                  <SheetClose asChild>
+                    <Button variant="outline">Fechar</Button>
+                  </SheetClose>
+                </div>
               </SheetFooter>
             </SheetContent>
           </Sheet>
@@ -133,11 +214,62 @@ function Header() {
                       <SheetTitle>Carrinho de Compras</SheetTitle>
                     </SheetHeader>
 
+                    <div className="flex flex-col gap-3 px-4">
+                      {cartItems.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          Seu carrinho esta vazio.
+                        </p>
+                      ) : (
+                        cartItems.map((item) => (
+                          <div
+                            key={item.id}
+                            className="border rounded-xl p-3 flex flex-col gap-1"
+                          >
+                            <p className="font-medium">{item.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              Preco: R$ {item.price}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Quantidade: {item.quantity}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Subtotal: R$ {item.price * item.quantity}
+                            </p>
+                            <div className="flex items-center gap-2 pt-1">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handleDecrease(item.id, item.quantity)
+                                }
+                              >
+                                -
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handleIncrease(item.id, item.quantity)
+                                }
+                              >
+                                +
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
                     <SheetFooter>
-                      <Button type="submit">Finalizar Compras</Button>
-                      <SheetClose asChild>
-                        <Button variant="outline">Fechar</Button>
-                      </SheetClose>
+                      <div className="w-full flex flex-col gap-2">
+                        <p className="text-sm">Total: R$ {cartTotal}</p>
+                        <Button asChild>
+                          <Link href="/cart">Finalizar Compras</Link>
+                        </Button>
+                        <SheetClose asChild>
+                          <Button variant="outline">Fechar</Button>
+                        </SheetClose>
+                      </div>
                     </SheetFooter>
                   </SheetContent>
                 </Sheet>

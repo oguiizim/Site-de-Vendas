@@ -1,17 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { getCakes } from "@/api/cake";
+import { addToCart } from "@/api/cart";
 import type { Cakes } from "@/api/types";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import Image from "next/image";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Home() {
+  const searchParams = useSearchParams();
   const [cakes, setCakes] = useState<Cakes[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   useEffect(() => {
     async function loadCakes() {
@@ -32,6 +39,32 @@ export default function Home() {
     loadCakes();
   }, []);
 
+  useEffect(() => {
+    const query = searchParams.get("q") || "";
+    setSearchTerm(query);
+  }, [searchParams]);
+
+  const categories = useMemo(() => {
+    return [...new Set(cakes.map((cake) => cake.category))];
+  }, [cakes]);
+
+  const filteredCakes = useMemo(() => {
+    return cakes.filter((cake) => {
+      const matchesName = cake.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesCategory =
+        selectedCategory === "all" || cake.category === selectedCategory;
+
+      return matchesName && matchesCategory;
+    });
+  }, [cakes, searchTerm, selectedCategory]);
+
+  function handleAddToCart(cake: Cakes) {
+    addToCart(cake);
+    toast.success("Produto adicionado ao carrinho!");
+  }
+
   return (
     <main className="w-full flex justify-center px-4 py-6 lg:px-8">
       <section className="w-full max-w-7xl border-2 rounded-2xl p-4 lg:p-6">
@@ -41,30 +74,34 @@ export default function Home() {
 
             <div className="flex flex-col gap-2">
               <Label className="text-sm text-gray-500">Buscar produto</Label>
-              <Input placeholder="Ex: bolo de chocolate" />
+              <Input
+                placeholder="Ex: bolo de chocolate"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
 
             <div className="flex flex-col gap-3">
               <Label className="text-sm text-gray-500">Categorias</Label>
-              <Button variant="outline" className="justify-start">
-                Tradicionais
+              <Button
+                variant={selectedCategory === "all" ? "default" : "outline"}
+                className="justify-start"
+                onClick={() => setSelectedCategory("all")}
+              >
+                Todas
               </Button>
-              <Button variant="outline" className="justify-start">
-                Festivos
-              </Button>
-              <Button variant="outline" className="justify-start">
-                Premium
-              </Button>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <Label className="text-sm text-gray-500">Disponibilidade</Label>
-              <Button variant="outline" className="justify-start">
-                Disponivel hoje
-              </Button>
-              <Button variant="outline" className="justify-start">
-                Sob encomenda
-              </Button>
+              {categories.map((category) => (
+                <Button
+                  key={category}
+                  variant={
+                    selectedCategory === category ? "default" : "outline"
+                  }
+                  className="justify-start"
+                  onClick={() => setSelectedCategory(category)}
+                >
+                  {category}
+                </Button>
+              ))}
             </div>
 
             <div className="flex flex-col gap-3">
@@ -90,8 +127,26 @@ export default function Home() {
             </div>
 
             {loading && (
-              <div className="h-full min-h-[40vh] flex items-center justify-center border-2 rounded-2xl">
-                <Label>Carregando produtos...</Label>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="border-2 rounded-2xl p-4 flex flex-col gap-4"
+                  >
+                    <Skeleton className="w-full h-48 rounded-xl" />
+                    <div className="flex flex-col gap-2">
+                      <Skeleton className="h-5 w-2/3" />
+                      <Skeleton className="h-4 w-1/3" />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Skeleton className="h-4 w-1/2" />
+                      <Skeleton className="h-4 w-1/3" />
+                      <Skeleton className="h-4 w-1/4" />
+                      <Skeleton className="h-4 w-2/5" />
+                    </div>
+                    <Skeleton className="h-8 w-full mt-auto rounded-lg" />
+                  </div>
+                ))}
               </div>
             )}
 
@@ -103,10 +158,10 @@ export default function Home() {
 
             {!loading && !error && (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {cakes.map((cake) => (
+                {filteredCakes.map((cake) => (
                   <article
                     key={cake.id}
-                    className="border-2 rounded-2xl p-4 flex flex-col gap-4"
+                    className="border-2 rounded-2xl p-4 flex flex-col gap-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-foreground/30"
                   >
                     <div className="w-full h-48 rounded-xl overflow-hidden border bg-muted/30">
                       <Image
@@ -134,7 +189,11 @@ export default function Home() {
                       </Label>
                     </div>
 
-                    <Button variant="outline" className="mt-auto">
+                    <Button
+                      variant="outline"
+                      className="mt-auto transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-foreground hover:text-background"
+                      onClick={() => handleAddToCart(cake)}
+                    >
                       Adicionar ao carrinho
                     </Button>
                   </article>
