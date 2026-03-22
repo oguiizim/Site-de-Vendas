@@ -103,7 +103,7 @@ function Header() {
           ) : (
             <Button
               variant="outline"
-              className="flex gap-2 items-center cursor-pointer"
+              className="hidden lg:flex gap-2 items-center cursor-pointer"
               asChild
             >
               <Link href="/login">

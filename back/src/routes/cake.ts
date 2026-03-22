@@ -22,14 +22,16 @@ router.post(
   RequireAdmin,
   async (req: Request, res: Response) => {
     try {
-      const { name, price, stock, weight, category, avaliable } = req.body;
+      const { name, price, stock, weight, category, avaliable, image_url } =
+        req.body;
       if (
         name == null ||
         price == null ||
         stock == null ||
         weight == null ||
         category == null ||
-        avaliable == null
+        avaliable == null ||
+        image_url == null
       ) {
         return res.status(400).json({ message: "Faltam informações!" });
       }
@@ -42,8 +44,8 @@ router.post(
       }
 
       await pool.query(
-        `INSERT INTO cakes (name, price, stock, weight, category, avaliable) VALUES ($1, $2, $3, $4, $5, $6)`,
-        [name, price, stock, weight, category, avaliable],
+        `INSERT INTO cakes (name, price, stock, weight, category, avaliable, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [name, price, stock, weight, category, avaliable, image_url],
       );
 
       return res.status(201).json({ message: "Bolo criado com sucesso." });
@@ -64,7 +66,8 @@ router.put(
         return res.status(400).json({ message: "ID inválido." });
       }
 
-      const { name, price, stock, weight, category, avaliable } = req.body;
+      const { name, price, stock, weight, category, avaliable, image_url } =
+        req.body;
 
       const selectResult = await pool.query(
         `SELECT * FROM cakes WHERE id = $1`,
@@ -94,9 +97,10 @@ router.put(
       const updatedWeight = weight ?? cake.weight;
       const updatedCategory = category ?? cake.category;
       const updatedAvaliable = avaliable ?? cake.avaliable;
+      const updatedUrl = image_url ?? cake.image_url;
 
       await pool.query(
-        `UPDATE cakes SET name = $1, price = $2, stock = $3, weight = $4, category = $5, avaliable = $6 WHERE id = $7`,
+        `UPDATE cakes SET name = $1, price = $2, stock = $3, weight = $4, category = $5, avaliable = $6, image_url = $7 WHERE id = $8`,
         [
           updatedName,
           updatedPrice,
@@ -104,6 +108,7 @@ router.put(
           updatedWeight,
           updatedCategory,
           updatedAvaliable,
+          updatedUrl,
           id,
         ],
       );

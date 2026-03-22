@@ -24,3 +24,24 @@ export type LoginResponse = {
 export type RegisterResponse = {
   message: string;
 };
+
+export type Cakes = {
+  id: number;
+  name: string;
+  price: number;
+  weight: number;
+  stock: number;
+  category: string;
+  avaliable: boolean;
+  image_url: string;
+};
+
+export type CreateCakeData = {
+  name: string;
+  price: number;
+  weight: number;
+  stock: number;
+  category: string;
+  avaliable: boolean;
+  image_url: string;
+};

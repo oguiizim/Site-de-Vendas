@@ -1,4 +1,4 @@
-import { apiFetch } from "@/api/client";
+import { API_URL } from "@/api/client";
 import type {
   LoginRequest,
   LoginResponse,
@@ -6,18 +6,40 @@ import type {
   RegisterResponse,
 } from "@/api/types";
 
-export function loginApi(data: LoginRequest) {
-  return apiFetch<LoginResponse>("/login", {
+export async function loginApi(data: LoginRequest): Promise<LoginResponse> {
+  const res = await fetch(`${API_URL}/login`, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(data),
-    errorMessage: "Nao foi possivel fazer login.",
   });
+
+  const info = await res.json();
+
+  if (!res.ok) {
+    throw new Error(info.message || "Nao foi possivel fazer login.");
+  }
+
+  return info;
 }
 
-export function registerApi(data: RegisterRequest) {
-  return apiFetch<RegisterResponse>("/register", {
+export async function registerApi(
+  data: RegisterRequest,
+): Promise<RegisterResponse> {
+  const res = await fetch(`${API_URL}/register`, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(data),
-    errorMessage: "Nao foi possivel criar a conta.",
   });
+
+  const info = await res.json();
+
+  if (!res.ok) {
+    throw new Error(info.message || "Nao foi possivel criar a conta.");
+  }
+
+  return info;
 }

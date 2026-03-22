@@ -30,9 +30,15 @@ function Profile() {
             Painel de Administrador
           </Label>
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="outline">Criar produto</Button>
-            <Button variant="outline">Editar produto</Button>
-            <Button variant="outline">Visualizar produtos</Button>
+            <Button variant="outline">
+              <Link href="/table/create">Criar produto</Link>
+            </Button>
+            <Button variant="outline">
+              <Link href="/table/edit">Editar produto</Link>
+            </Button>
+            <Button variant="outline">
+              <Link href="/table">Visualizar produtos</Link>
+            </Button>
           </div>
         </div>
       )}
