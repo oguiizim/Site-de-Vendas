@@ -15,12 +15,21 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Search, Menu, ShoppingCart, CakeSlice, LogOut } from "lucide-react";
+import {
+  Search,
+  Menu,
+  ShoppingCart,
+  CakeSlice,
+  LogOut,
+  LogIn,
+} from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 function Header() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const { user, loading, logout } = useAuth();
 
@@ -34,12 +43,19 @@ function Header() {
           <h1 className="text-xl">Site de Vendas</h1>
         </div>
         <div className="w-full flex lg:w-[35%] items-center gap-3">
-          <InputGroup className="max-w-full">
-            <InputGroupInput placeholder="Pesquisar" />
-            <InputGroupAddon>
-              <Search />
-            </InputGroupAddon>
-          </InputGroup>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              router.push("/");
+            }}
+          >
+            <InputGroup className="max-w-full">
+              <InputGroupInput placeholder="Pesquisar" />
+              <InputGroupAddon>
+                <Search />
+              </InputGroupAddon>
+            </InputGroup>
+          </form>
           <Button
             variant="outline"
             className="lg:hidden w-10 h-10 cursor-pointer"
@@ -73,16 +89,29 @@ function Header() {
               </SheetFooter>
             </SheetContent>
           </Sheet>
-          <Button
-            variant="outline"
-            className="hidden lg:flex gap-2 items-center cursor-pointer"
-            onClick={() => {
-              logout();
-            }}
-          >
-            <LogOut />
-            Sair
-          </Button>
+          {user ? (
+            <Button
+              variant="outline"
+              className="hidden lg:flex gap-2 items-center cursor-pointer"
+              onClick={() => {
+                logout();
+              }}
+            >
+              <LogOut />
+              Sair
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              className="flex gap-2 items-center cursor-pointer"
+              asChild
+            >
+              <Link href="/login">
+                <LogIn />
+                Entrar
+              </Link>
+            </Button>
+          )}
         </div>
 
         {open && (
@@ -119,16 +148,29 @@ function Header() {
                 </Button>
               </li>
               <li className="flex w-full justify-center">
-                <Button
-                  variant="outline"
-                  className="flex gap-2 items-center cursor-pointer"
-                  onClick={() => {
-                    logout();
-                  }}
-                >
-                  <LogOut />
-                  Sair
-                </Button>
+                {user ? (
+                  <Button
+                    variant="outline"
+                    className="flex gap-2 items-center cursor-pointer"
+                    onClick={() => {
+                      logout();
+                    }}
+                  >
+                    <LogOut />
+                    Sair
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="flex gap-2 items-center cursor-pointer"
+                    asChild
+                  >
+                    <Link href="/login">
+                      <LogIn />
+                      Entrar
+                    </Link>
+                  </Button>
+                )}
               </li>
             </ul>
           </div>
