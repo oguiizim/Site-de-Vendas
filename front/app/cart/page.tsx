@@ -2,18 +2,24 @@
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   clearCart,
   getCartItems,
   removeFromCart,
   updateCartItemQuantity,
 } from "@/api/cart";
+import { createOrder } from "@/api/order";
 import type { CartItem } from "@/api/types";
 
 function PartPage() {
   const [items, setItems] = useState<CartItem[]>(() => getCartItems());
+  const [submitting, setSubmitting] = useState(false);
+  const [payerEmail, setPayerEmail] = useState("");
+  const [payerDocument, setPayerDocument] = useState("");
 
   const total = useMemo(() => {
     return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -34,6 +40,41 @@ function PartPage() {
   function handleClearCart() {
     clearCart();
     setItems([]);
+  }
+
+  async function handleFinishOrder() {
+    try {
+      setSubmitting(true);
+
+      const payload = {
+        items: items.map((item) => ({
+          id: item.id,
+          quantity: item.quantity,
+        })),
+        payer_email: payerEmail,
+        payer_document: payerDocument,
+      };
+
+      const response = await createOrder(payload);
+      clearCart();
+      setItems([]);
+      toast.success("Pedido realizado com sucesso!");
+
+      if (response.payment.ticket_url) {
+        window.location.href = response.payment.ticket_url;
+        return;
+      }
+
+      toast.error("Pix gerado sem URL de pagamento.");
+    } catch (err) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("Nao foi possivel finalizar a compra.");
+      }
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (items.length === 0) {
@@ -116,7 +157,30 @@ function PartPage() {
             <Label className="text-xl font-semibold">Resumo</Label>
             <Label>Total de itens: {items.length}</Label>
             <Label className="text-lg">Total: R$ {total}</Label>
-            <Button variant="outline">Finalizar compra</Button>
+            <div className="flex flex-col gap-2">
+              <Label>Email para pagamento</Label>
+              <Input
+                type="email"
+                value={payerEmail}
+                onChange={(e) => setPayerEmail(e.target.value)}
+                placeholder="cliente@email.com"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label>CPF do pagador</Label>
+              <Input
+                value={payerDocument}
+                onChange={(e) => setPayerDocument(e.target.value)}
+                placeholder="00000000000"
+              />
+            </div>
+            <Button
+              variant="outline"
+              disabled={submitting}
+              onClick={handleFinishOrder}
+            >
+              {submitting ? "Finalizando..." : "Finalizar compra"}
+            </Button>
           </aside>
         </div>
       </section>

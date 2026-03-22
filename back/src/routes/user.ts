@@ -4,7 +4,7 @@ import pool from "../postgres";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
-import { AuthToken, RequireAdmin } from "../middleware";
+import { AuthToken } from "../middleware";
 
 dotenv.config();
 const router = Router();

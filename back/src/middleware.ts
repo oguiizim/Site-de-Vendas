@@ -5,32 +5,32 @@ dotenv.config();
 
 const jwtSecret = process.env.JWT_SECRET;
 
-interface JwtPayload {
+export interface JwtPayload {
   id: number;
   role?: string;
 }
 
-interface AuthRequest extends Request {
+export interface AuthRequest extends Request {
   user?: JwtPayload;
 }
 
 export function AuthToken(req: AuthRequest, res: Response, next: NextFunction) {
   if (!jwtSecret) {
-    throw new Error("Jwt Secret are unavaliable!");
+    return res.status(500).json({ message: "JWT secret nao configurado." });
   }
   const authHeader = req.headers["authorization"];
   if (!authHeader) {
-    throw new Error("Auth Header are undefined!");
+    return res.status(401).json({ message: "Token nao informado." });
   }
   const token = authHeader?.split(" ")[1];
 
   if (!token) {
-    return res.status(401);
+    return res.status(401).json({ message: "Token invalido." });
   }
 
   jwt.verify(token, jwtSecret, (err, user) => {
     if (err) {
-      return res.status(403);
+      return res.status(403).json({ message: "Token invalido ou expirado." });
     }
     req.user = user as JwtPayload;
     next();
