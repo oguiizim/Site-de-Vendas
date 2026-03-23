@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { editCake, getCakeById } from "@/api/cake";
@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-function EditCake() {
+function EditCakeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
@@ -202,4 +202,10 @@ function EditCake() {
   );
 }
 
-export default EditCake;
+export default function EditCake() {
+  return (
+    <Suspense fallback={<div className="w-full flex flex-col items-center justify-center p-5" />}>
+      <EditCakeContent />
+    </Suspense>
+  );
+}

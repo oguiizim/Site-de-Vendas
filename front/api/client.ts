@@ -1,2 +1,3 @@
 export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://site-de-vendas-back-fw48a3gqu-oguiizims-projects.vercel.app";

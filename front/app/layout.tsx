@@ -1,13 +1,8 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "./_header/page";
 import { AuthProvider } from "@/context/AuthContext";
 import { Toaster } from "sonner";
-
-const inter = Inter({
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Site de Vendas",
@@ -20,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.className} h-full antialiased`}>
+    <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
         <AuthProvider>
           <Header />

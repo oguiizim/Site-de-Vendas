@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function Home() {
+function HomeContent() {
   const searchParams = useSearchParams();
   const [cakes, setCakes] = useState<Cakes[]>([]);
   const [loading, setLoading] = useState(true);
@@ -204,5 +204,13 @@ export default function Home() {
         </div>
       </section>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<main className="w-full flex justify-center px-4 py-6 lg:px-8" />}>
+      <HomeContent />
+    </Suspense>
   );
 }

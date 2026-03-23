@@ -23,7 +23,7 @@ import {
   LogOut,
   LogIn,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -34,7 +34,7 @@ import {
 } from "@/api/cart";
 import type { CartItem } from "@/api/types";
 
-function Header() {
+function HeaderContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
@@ -309,6 +309,27 @@ function Header() {
         )}
       </div>
     </div>
+  );
+}
+
+function HeaderFallback() {
+  return (
+    <div className="w-full flex items-center border-b-2">
+      <div className="w-full flex flex-col lg:flex-row items-center p-4 justify-center gap-5">
+        <div className="flex flex-row gap-2 items-center">
+          <CakeSlice />
+          <h1 className="text-xl">Site de Vendas</h1>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Header() {
+  return (
+    <Suspense fallback={<HeaderFallback />}>
+      <HeaderContent />
+    </Suspense>
   );
 }
 
